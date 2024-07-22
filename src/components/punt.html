@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+       .editor {
+            width: 80%;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+       .editor textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+        }
+       .selectors {
+            margin-top: 20px;
+        }
+       .selectors select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+        }
+       .italic-toggle {
+            margin-top: 10px;
+        }
+       .italic-toggle input[type="checkbox"] {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor">
+        <textarea id="text-editor"></textarea>
+        <div class="selectors">
+            <select id="font-family">
+                <!-- font family options will be generated dynamically -->
+            </select>
+            <select id="font-weight">
+                <!-- font weight options will be generated dynamically -->
+            </select>
+        </div>
+        <div class="italic-toggle">
+            <input type="checkbox" id="italic" />
+            <label for="italic">Italic</label>
+        </div>
+    </div>
+
+    <script>
+        const fontsData = {
+            // assuming the JSON file is in the same directory
+            "Abel": [
+                { "weight": 400, "italic": false },
+                { "weight": 700, "italic": false }
+            ],
+            "Abril Fatface": [
+                { "weight": 400, "italic": false }
+            ],
+            //... rest of the font data
+        };
+
+        const textEditor = document.getElementById("text-editor");
+        const fontFamilySelect = document.getElementById("font-family");
+        const fontWeightSelect = document.getElementById("font-weight");
+        const italicToggle = document.getElementById("italic");
+
+        // generate font family options
+        Object.keys(fontsData).forEach((fontFamily) => {
+            const option = document.createElement("option");
+            option.value = fontFamily;
+            option.text = fontFamily;
+            fontFamilySelect.appendChild(option);
+        });
+
+        // set initial font family and weight
+        let currentFontFamily = "Abel";
+        let currentFontWeight = 400;
+        let currentItalic = false;
+
+        // load saved data from local storage
+        const savedData = localStorage.getItem("text-editor-data");
+        if (savedData) {
+            const { fontFamily, fontWeight, italic, text } = JSON.parse(savedData);
+            currentFontFamily = fontFamily;
+            currentFontWeight = fontWeight;
+            currentItalic = italic;
+            textEditor.value = text;
+        }
+
+        // update font family and weight options
+        function updateFontOptions() {
+            const fontData = fontsData[currentFontFamily];
+            fontWeightSelect.innerHTML = "";
+            fontData.forEach((font) => {
+                const option = document.createElement("option");
+                option.value = font.weight;
+                option.text = font.weight + (font.italic? " italic" : "");
+                fontWeightSelect.appendChild(option);
+            });
+            fontWeightSelect.value = currentFontWeight;
+        }
+
+        // update italic toggle
+        function updateItalicToggle() {
+            const fontData = fontsData[currentFontFamily];
+            const hasItalic = fontData.some((font) => font.italic);
+            italicToggle.disabled =!hasItalic;
+        }
+
+        // handle font family change
+        fontFamilySelect.addEventListener("change", (e) => {
+            currentFontFamily = e.target.value;
+            updateFontOptions();
+            updateItalicToggle();
+        });
+
+        // handle font weight change
+        fontWeightSelect.addEventListener("change", (e) => {
+            currentFontWeight = parseInt(e.target.value);
+        });
+
+        // handle italic toggle change
+        italicToggle.addEventListener("change", (e) => {
+            currentItalic = e.target.checked;
+        });
+
+        // auto-save text and font data
+        textEditor.addEventListener("input", () => {
+            const text = textEditor.value;
+            const data = {
+                fontFamily: currentFontFamily,
+                fontWeight: currentFontWeight,
+                italic: currentItalic,
+                text,
+            };
+            localStorage.setItem("text
